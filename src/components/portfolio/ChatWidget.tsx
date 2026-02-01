@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { MessageCircle, Bot, X, Send, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,6 +16,19 @@ export const ChatWidget = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [apiKey, setApiKey] = useState('');
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+
+  // 自动滚动到底部
+  const scrollToBottom = () => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  };
+
+  // 消息更新时自动滚动
+  useEffect(() => {
+    scrollToBottom();
+  }, [chatHistory, isTyping]);
 
   useEffect(() => {
     // 优先从 env 读取，如果没有则尝试 localStorage
@@ -27,6 +40,96 @@ export const ChatWidget = () => {
       if (savedKey) setApiKey(savedKey);
     }
   }, []);
+
+  // 知识库内容
+  const knowledgeBase = {
+    style: {
+      speaking: "直接、口语化，用短句表达，不正式，不用客套话",
+      writing: "喜欢用短句，一句一意，不喜欢正式官方的书面语，简洁明了不堆砌形容词",
+      structure: "介绍项目时：先说痛点（存在的问题），再说解决方案（怎么解决的）"
+    },
+    courses: {
+      lesson1: "AI编程认知和反思 - 了解Vibe Coding，2025年6月开始接触AI编程",
+      lesson2: "从网站开始构建一款产品 - 使用Enter.pro开发，Supabase做数据库",
+      lesson3: "打造我的AI产品 - 接入智能体，算运势功能，使用阿里云百炼平台",
+      lesson4: "走近代码的世界 - 使用Trae CN、Cursor、Claude Code等AI编程工具",
+      lesson56: "建立个人主页并部署 - 产品开发全流程：需求→Demo→PRD→UI→开发→测试→上线→迭代",
+      lesson7: "做出一个工具产品 - SkillSearch的诞生过程，从痛点到MVP"
+    },
+    tools: {
+      aiCoding: ["Trae CN", "Cursor", "CodeBuddy CN", "Claude Code (Pro会员)"],
+      database: "Supabase",
+      deployment: ["Vercel", "Enter.pro"],
+      workflow: "使用云舒老师的thought-mining skill整理思路"
+    }
+  };
+
+  // 系统提示词 - 包含完整的项目信息和知识库
+  const systemPrompt = `你是Lee的AI分身，一个独立开发者。你的任务是回答访客关于Lee的项目、AI编程经历和学习心得的问题。
+
+## 说话风格（必须遵循）
+- ${knowledgeBase.style.speaking}
+- ${knowledgeBase.style.writing}
+- ${knowledgeBase.style.structure}
+- 不要每句话都加"呃"，那是用户的口头禅不是你的
+
+## 项目信息（必须准确使用）
+
+### 项目一：拾光 (TimePick)
+- 类型：智能资料存储系统
+- Slogan：让每一个灵感都有归属
+- 痛点：网页资料收藏后 never read later，设计灵感散落各处，"我知道它存在，但就是找不到"的信息检索难题，日常信息碎片化无法有效整理
+- 解决方案：智能资料收集（AI自动提取关键信息）+ 灵感随时记录（语音输入）+ 多维分类管理（无限层级文件夹+多标签）+ 全局极速搜索
+- MVP功能：粘贴链接自动识别标题内容、AI自动提取关键信息并智能分类、多标签系统+无限层级文件夹、全文检索+每日运势抽签特色功能
+- 技术栈：React 19, TypeScript, Vite 6, Supabase, Tailwind CSS, shadcn/ui
+- 开发数据：2周，~5000行代码，AI贡献70%
+- 在线演示：https://277078962e8c471691f9db87fae77eb3.prod.enter.pro/
+- GitHub：https://github.com/Lee0317-ai/TimePick
+
+### 项目二：Skill Search
+- 类型：AI Skill 搜索平台
+- Slogan：一句话找到想要的AI Skill
+- 痛点：AI Skill分散在GitHub各处缺乏统一入口，现有工具搜索体验不佳（skills.sh不支持语义匹配），"我知道它存在，但就是找不到"的困境
+- 解决方案：关键词搜索 + 语义搜索（自然语言描述需求智能匹配）+ 热门推荐 + 本地Skill管理（树状文件浏览器）
+- MVP功能：关键词快速定位已知Skill、语义搜索描述需求智能匹配、热门推荐发现大家都在用的Skill、每日自动从GitHub爬取最新数据
+- 技术栈：Next.js 14, TypeScript, Tailwind CSS, Supabase, SWR, GitHub API
+- 开发数据：1周，~3000行代码，AI贡献75%
+- 在线演示：https://skill-search-pink.vercel.app/
+- GitHub：https://github.com/Lee0317-ai/skill_search
+
+### 项目三：Lee's Online
+- 类型：个人作品集网站
+- Slogan：用代码+AI写下自己的序章
+- 痛点：独立开发者需要展示个人作品，缺乏集中展示多个项目的入口，需要建立个人品牌和在线形象
+- 解决方案：个人简介时间线 + 产品展示 + 工具展示 + AI学习区 + 主题切换，打造完整的个人品牌形象
+- MVP功能：个人成长时间线展示、产品作品集展示、AI学习资源分享、深色/浅色主题切换
+- 技术栈：React 19, TypeScript, Vite 6, Tailwind CSS, shadcn/ui, Enter.pro
+- 开发数据：3天，~2000行代码，AI贡献80%
+- 在线演示：https://deea49bca1084f7791316fb28df0e503.prod.enter.pro/
+- GitHub：https://github.com/Lee0317-ai/Lee_Online
+
+## 学习历程（知识库内容）
+- Vibe Coding训练营学习过程：
+  * 第一课：AI编程认知和反思 - 2025年6月开始接触AI编程
+  * 第二课：从网站开始构建产品 - 学会使用Enter.pro和Supabase
+  * 第三课：打造AI产品 - 接入阿里云百炼智能体，实现算运势功能
+  * 第四课：走近代码世界 - 使用Trae CN、Cursor、Claude Code等工具
+  * 第五六课：建立个人主页并部署 - 掌握完整的产品开发流程
+  * 第七课：做出工具产品 - SkillSearch从痛点发掘到MVP实现
+
+## 常用工具
+- AI编程：Trae CN、Cursor、CodeBuddy CN、Claude Code
+- 数据库：Supabase
+- 部署：Vercel、Enter.pro
+- 工作流：云舒老师的thought-mining skill
+
+## 回答要求
+- 必须基于上面的信息回答，不要编造
+- 如果用户问课程学习相关内容，使用"学习历程"中的信息
+- 如果用户问工具使用，参考"常用工具"部分
+- **只在用户明确问"网址/链接/地址/在哪里访问"时才给出链接，平时介绍项目不需要带链接**
+- 给出链接时，单独成行，方便复制
+- 保持直接、口语化的风格，不要用正式书面语`;
 
   const sendMessage = async () => {
     if (!chatMessage.trim()) return;
@@ -45,55 +148,23 @@ export const ChatWidget = () => {
       return;
     }
 
-    // 调用阿里云 API（通过 Vercel 代理避免 CORS）
+    // 调用 API（本地开发走 Vite 代理，生产环境走 Vercel 代理）
     setIsTyping(true);
 
-    // 本地开发环境直接调用（需要处理 CORS）
-    const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-
     try {
-      let response;
-
-      if (isLocalDev) {
-        // 本地开发：直接调用阿里云（需要浏览器安装 CORS 插件或配置）
-        response = await fetch('https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${apiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'qwen-turbo',
-            input: {
-              messages: [
-                { role: 'system', content: '你是Lee的AI分身。说话风格：直接、口语化，常用"呃"开头，用短句表达，不正式。介绍项目时先说痛点再说解决方案。可以回答关于Lee的项目（拾光、Skill Search、Lee\'s Online）和AI编程学习的问题。' },
-                ...chatHistory.filter(m => m.role !== 'system').map(m => ({ role: m.role, content: m.content })),
-                { role: 'user', content: userMsg }
-              ]
-            },
-            parameters: {
-              result_format: 'message',
-              max_tokens: 1500,
-              temperature: 0.7,
-            }
-          }),
-        });
-      } else {
-        // 生产环境：通过 Vercel 代理
-        response = await fetch('/api/chat', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            messages: [
-              { role: 'system', content: '你是Lee的AI分身。说话风格：直接、口语化，常用"呃"开头，用短句表达，不正式。介绍项目时先说痛点再说解决方案。可以回答关于Lee的项目（拾光、Skill Search、Lee\'s Online）和AI编程学习的问题。' },
-              ...chatHistory.filter(m => m.role !== 'system').map(m => ({ role: m.role, content: m.content })),
-              { role: 'user', content: userMsg }
-            ]
-          }),
-        });
-      }
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: [
+            { role: 'system', content: systemPrompt },
+            ...chatHistory.filter(m => m.role !== 'system').map(m => ({ role: m.role, content: m.content })),
+            { role: 'user', content: userMsg }
+          ]
+        }),
+      });
 
       if (!response.ok) {
         throw new Error(`API 请求失败: ${response.status}`);
@@ -105,19 +176,10 @@ export const ChatWidget = () => {
       setChatHistory(prev => [...prev, { role: 'assistant', content: aiResponse }]);
     } catch (error) {
       console.error('API 调用失败:', error);
-      const isCorsError = error.message?.includes('Failed to fetch') || error.name === 'TypeError';
-      const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-
-      if (isCorsError && isLocalDev) {
-        // 本地开发 CORS 错误，使用模拟回复
-        const mockResponse = simulateAIResponse(userMsg);
-        setChatHistory(prev => [...prev, { role: 'assistant', content: mockResponse }]);
-      } else {
-        setChatHistory(prev => [...prev, {
-          role: 'assistant',
-          content: '呃，API 调用出错了。请检查 API Key 是否正确，或者部署到 Vercel 后再试。'
-        }]);
-      }
+      setChatHistory(prev => [...prev, {
+        role: 'assistant',
+        content: 'API 调用出错了。请检查 .env 文件中的 API Key 是否正确。'
+      }]);
     } finally {
       setIsTyping(false);
     }
@@ -158,7 +220,7 @@ export const ChatWidget = () => {
                 </button>
               </div>
 
-              <div className="h-80 overflow-y-auto p-4 space-y-4 bg-secondary">
+              <div ref={chatContainerRef} className="h-80 overflow-y-auto p-4 space-y-4 bg-secondary">
                 <div className="flex items-start space-x-2">
                   <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary-glow rounded-full flex items-center justify-center flex-shrink-0">
                     <Bot className="w-4 h-4 text-white" />
@@ -187,7 +249,7 @@ export const ChatWidget = () => {
                           {msg.role === 'user' ? <User className="w-4 h-4 text-white" /> : <Bot className="w-4 h-4 text-white" />}
                         </div>
                         <div className={`p-3 rounded-2xl shadow-sm max-w-[80%] ${msg.role === 'user' ? 'bg-primary text-white rounded-tr-none' : 'bg-card rounded-tl-none'}`}>
-                          <p className="text-sm whitespace-pre-line">{msg.content}</p>
+                          <p className="text-sm whitespace-pre-wrap break-all">{msg.content}</p>
                         </div>
                       </>
                     )}
