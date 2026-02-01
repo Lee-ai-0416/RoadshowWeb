@@ -18,11 +18,11 @@ export const Deploy = () => {
         <div className="grid md:grid-cols-3 gap-8">
           {deploySteps.map((step) => (
             <div key={step.num} className="bg-secondary rounded-2xl p-8 text-center hover:-translate-y-2 transition-transform">
-              <div className="w-16 h-16 bg-foreground rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <div className="relative w-16 h-16 bg-foreground rounded-2xl flex items-center justify-center mx-auto mb-6">
                 <step.icon className="w-8 h-8 text-background" />
+                <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-7 h-7 bg-primary text-white rounded-full flex items-center justify-center border-4 border-card font-bold text-sm">{step.num}</div>
               </div>
-              <div className="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center mx-auto -mt-14 mb-4 border-4 border-card font-bold">{step.num}</div>
-              <h3 className="text-xl font-bold mb-3">{step.title}</h3>
+              <h3 className="text-xl font-bold mb-3 mt-4">{step.title}</h3>
               <p className="text-muted-foreground text-sm mb-4">{step.desc}</p>
               <ul className="text-left text-sm text-muted-foreground space-y-2 bg-card p-4 rounded-lg">
                 {step.steps.map((s, j) => (

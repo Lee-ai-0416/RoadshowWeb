@@ -18,8 +18,14 @@ export const ChatWidget = () => {
   const [apiKey, setApiKey] = useState('');
 
   useEffect(() => {
-    const savedKey = localStorage.getItem('deepseek_api_key');
-    if (savedKey) setApiKey(savedKey);
+    // 优先从 env 读取，如果没有则尝试 localStorage
+    const envKey = import.meta.env.VITE_ALIYUN_API_KEY;
+    if (envKey) {
+      setApiKey(envKey);
+    } else {
+      const savedKey = localStorage.getItem('aliyun_api_key');
+      if (savedKey) setApiKey(savedKey);
+    }
   }, []);
 
   const sendMessage = async () => {
@@ -28,17 +34,97 @@ export const ChatWidget = () => {
     const userMsg = chatMessage;
     setChatMessage('');
     setChatHistory(prev => [...prev, { role: 'user', content: userMsg }]);
-    
+
+    // 如果没有 API Key，使用模拟回复
+    if (!apiKey) {
+      setIsTyping(true);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      const response = simulateAIResponse(userMsg);
+      setIsTyping(false);
+      setChatHistory(prev => [...prev, { role: 'assistant', content: response }]);
+      return;
+    }
+
+    // 调用阿里云 API（通过 Vercel 代理避免 CORS）
     setIsTyping(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const response = simulateAIResponse(userMsg);
-    setIsTyping(false);
-    setChatHistory(prev => [...prev, { role: 'assistant', content: response }]);
+
+    // 本地开发环境直接调用（需要处理 CORS）
+    const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+    try {
+      let response;
+
+      if (isLocalDev) {
+        // 本地开发：直接调用阿里云（需要浏览器安装 CORS 插件或配置）
+        response = await fetch('https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'qwen-turbo',
+            input: {
+              messages: [
+                { role: 'system', content: '你是Lee的AI分身。说话风格：直接、口语化，常用"呃"开头，用短句表达，不正式。介绍项目时先说痛点再说解决方案。可以回答关于Lee的项目（拾光、Skill Search、Lee\'s Online）和AI编程学习的问题。' },
+                ...chatHistory.filter(m => m.role !== 'system').map(m => ({ role: m.role, content: m.content })),
+                { role: 'user', content: userMsg }
+              ]
+            },
+            parameters: {
+              result_format: 'message',
+              max_tokens: 1500,
+              temperature: 0.7,
+            }
+          }),
+        });
+      } else {
+        // 生产环境：通过 Vercel 代理
+        response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            messages: [
+              { role: 'system', content: '你是Lee的AI分身。说话风格：直接、口语化，常用"呃"开头，用短句表达，不正式。介绍项目时先说痛点再说解决方案。可以回答关于Lee的项目（拾光、Skill Search、Lee\'s Online）和AI编程学习的问题。' },
+              ...chatHistory.filter(m => m.role !== 'system').map(m => ({ role: m.role, content: m.content })),
+              { role: 'user', content: userMsg }
+            ]
+          }),
+        });
+      }
+
+      if (!response.ok) {
+        throw new Error(`API 请求失败: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const aiResponse = data.output?.choices?.[0]?.message?.content || '抱歉，我没有理解你的问题，可以再说一遍吗？';
+
+      setChatHistory(prev => [...prev, { role: 'assistant', content: aiResponse }]);
+    } catch (error) {
+      console.error('API 调用失败:', error);
+      const isCorsError = error.message?.includes('Failed to fetch') || error.name === 'TypeError';
+      const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+      if (isCorsError && isLocalDev) {
+        // 本地开发 CORS 错误，使用模拟回复
+        const mockResponse = simulateAIResponse(userMsg);
+        setChatHistory(prev => [...prev, { role: 'assistant', content: mockResponse }]);
+      } else {
+        setChatHistory(prev => [...prev, {
+          role: 'assistant',
+          content: '呃，API 调用出错了。请检查 API Key 是否正确，或者部署到 Vercel 后再试。'
+        }]);
+      }
+    } finally {
+      setIsTyping(false);
+    }
   };
 
   const saveApiKey = () => {
-    localStorage.setItem('deepseek_api_key', apiKey);
+    localStorage.setItem('aliyun_api_key', apiKey);
     setShowSettings(false);
     setChatHistory(prev => [...prev, { role: 'system', content: 'API Key已保存！现在可以使用AI对话功能了。' }]);
   };
@@ -138,7 +224,7 @@ export const ChatWidget = () => {
                   </Button>
                 </div>
                 <div className="flex items-center justify-between mt-2">
-                  <p className="text-xs text-muted-foreground">Powered by DeepSeek AI</p>
+                  <p className="text-xs text-muted-foreground">Powered by 阿里通义千问</p>
                   <button onClick={() => setShowSettings(true)} className="text-xs text-primary hover:underline">配置API Key</button>
                 </div>
               </div>
@@ -153,7 +239,7 @@ export const ChatWidget = () => {
               </div>
               <div className="space-y-3">
                 <div>
-                  <label className="text-xs text-muted-foreground block mb-1">DeepSeek API Key</label>
+                  <label className="text-xs text-muted-foreground block mb-1">阿里云 API Key</label>
                   <Input
                     type="password"
                     value={apiKey}
@@ -163,8 +249,8 @@ export const ChatWidget = () => {
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  填写你的DeepSeek API Key以获得更好的回答体验。
-                  <a href="https://platform.deepseek.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline ml-1">获取Key</a>
+                  填写你的阿里云百炼 API Key以获得更好的回答体验。
+                  <a href="https://bailian.console.aliyun.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline ml-1">获取Key</a>
                 </p>
                 <Button onClick={saveApiKey} className="w-full bg-primary">保存</Button>
               </div>

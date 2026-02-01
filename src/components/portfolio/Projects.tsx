@@ -18,6 +18,8 @@ const projects = [
     ],
     techStack: ['React 19', 'TypeScript', 'Vite 6', 'Supabase', 'Tailwind CSS', 'shadcn/ui'],
     stats: { period: '2周', code: '~5000行', ai: '70%' },
+    githubUrl: 'https://github.com/Lee0317-ai/TimePick',
+    demoUrl: 'https://277078962e8c471691f9db87fae77eb3.prod.enter.pro/',
     order: 'left',
   },
   {
@@ -37,6 +39,8 @@ const projects = [
     ],
     techStack: ['Next.js 14', 'TypeScript', 'Tailwind CSS', 'Supabase', 'SWR', 'GitHub API'],
     stats: { period: '1周', code: '~3000行', ai: '75%' },
+    githubUrl: 'https://github.com/Lee0317-ai/skill_search',
+    demoUrl: 'https://skill-search-pink.vercel.app/',
     order: 'right',
   },
   {
@@ -56,7 +60,8 @@ const projects = [
     ],
     techStack: ['React 19', 'TypeScript', 'Vite 6', 'Tailwind CSS', 'shadcn/ui', 'Enter.pro'],
     stats: { period: '3天', code: '~2000行', ai: '80%' },
-    demoUrl: 'https://lee-online.vercel.app',
+    githubUrl: 'https://github.com/Lee0317-ai/Lee_Online',
+    demoUrl: 'https://deea49bca1084f7791316fb28df0e503.prod.enter.pro/',
     order: 'left',
   },
 ];
@@ -106,11 +111,11 @@ const ProjectCard = ({ project }: { project: typeof projects[0] }) => {
           </div>
 
           <div className="flex space-x-3">
-            <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 text-muted-foreground hover:text-primary transition">
+            <a href={project.githubUrl} target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 text-muted-foreground hover:text-primary transition">
               <Github className="w-5 h-5" />
               <span className="text-sm">查看代码</span>
             </a>
-            <a href={project.demoUrl || '#'} target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 text-muted-foreground hover:text-primary transition">
+            <a href={project.demoUrl} target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2 text-muted-foreground hover:text-primary transition">
               <ExternalLink className="w-5 h-5" />
               <span className="text-sm">在线演示</span>
             </a>
