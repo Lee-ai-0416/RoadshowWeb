@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Code2, Github } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Code2 } from 'lucide-react';
 
 export const Navigation = () => {
   const [navShadow, setNavShadow] = useState(false);
@@ -23,7 +22,7 @@ export const Navigation = () => {
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-2">
             <Code2 className="w-6 h-6 text-primary" />
-            <span className="font-bold text-xl gradient-text">Lee.dev</span>
+            <span className="font-bold text-xl gradient-text">LEE</span>
           </div>
           <div className="hidden md:flex space-x-8">
             <button onClick={() => scrollToSection('about')} className="relative text-muted-foreground hover:text-primary font-medium transition-colors group">
@@ -38,17 +37,15 @@ export const Navigation = () => {
               学习复盘
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-primary-glow transition-all group-hover:w-full" />
             </button>
+            <button onClick={() => scrollToSection('insights')} className="relative text-muted-foreground hover:text-primary font-medium transition-colors group">
+              经验总结
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-primary-glow transition-all group-hover:w-full" />
+            </button>
             <button onClick={() => scrollToSection('deploy')} className="relative text-muted-foreground hover:text-primary font-medium transition-colors group">
               上线部署
               <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-primary to-primary-glow transition-all group-hover:w-full" />
             </button>
           </div>
-          <Button asChild className="bg-slate-900 hover:bg-slate-800 text-white">
-            <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-2">
-              <Github className="w-4 h-4" />
-              <span>GitHub</span>
-            </a>
-          </Button>
         </div>
       </div>
     </nav>

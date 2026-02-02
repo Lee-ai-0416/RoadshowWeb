@@ -3,7 +3,8 @@
     "allow": [
       "Bash(python3 -c:*)",
       "Bash(pip install:*)",
-      "Bash(python -c:*)"
+      "Bash(python -c:*)",
+      "Bash(npm run dev)"
     ]
   }
 }

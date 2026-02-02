@@ -68,12 +68,21 @@ const projects = [
 
 const ProjectCard = ({ project }: { project: typeof projects[0] }) => {
   const isLeft = project.order === 'left';
-  
+
+  // 颜色映射
+  const badgeColors = {
+    amber: { bg: 'bg-amber-100', text: 'text-amber-700' },
+    indigo: { bg: 'bg-indigo-100', text: 'text-indigo-700' },
+    emerald: { bg: 'bg-emerald-100', text: 'text-emerald-700' },
+  };
+
+  const colors = badgeColors[project.badge.color as keyof typeof badgeColors];
+
   return (
     <div className="mb-20">
       <div className="grid md:grid-cols-2 gap-12 items-center">
         <div className={isLeft ? 'order-2 md:order-1' : ''}>
-          <div className={`inline-flex items-center space-x-2 bg-${project.badge.color}-100 text-${project.badge.color}-700 px-3 py-1 rounded-full text-sm font-medium mb-4`}>
+          <div className={`inline-flex items-center space-x-2 ${colors.bg} ${colors.text} px-3 py-1 rounded-full text-sm font-medium mb-4`}>
             <span>{project.badge.label}</span>
           </div>
           <h3 className="text-3xl font-bold mb-2">{project.title}</h3>
