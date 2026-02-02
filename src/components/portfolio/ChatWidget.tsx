@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { MessageCircle, Bot, X, Send, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { sendChatMessage } from '@/lib/api-client';
 
 interface Message {
   role: string;
@@ -124,37 +125,22 @@ export const ChatWidget = () => {
     setChatMessage('');
     setChatHistory(prev => [...prev, { role: 'user', content: userMsg }]);
 
-    // 调用 API（本地开发走 Vite 代理，生产环境走 Vercel 代理）
     setIsTyping(true);
 
     try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          messages: [
-            { role: 'system', content: systemPrompt },
-            ...chatHistory.filter(m => m.role !== 'system').map(m => ({ role: m.role, content: m.content })),
-            { role: 'user', content: userMsg }
-          ]
-        }),
-      });
+      const fullMessages = [
+        { role: 'system', content: systemPrompt },
+        ...chatHistory.filter(m => m.role !== 'system'),
+        { role: 'user', content: userMsg }
+      ];
 
-      if (!response.ok) {
-        throw new Error(`API 请求失败: ${response.status}`);
-      }
-
-      const data = await response.json();
-      const aiResponse = data.output?.choices?.[0]?.message?.content || '抱歉，我没有理解你的问题，可以再说一遍吗？';
-
+      const aiResponse = await sendChatMessage(fullMessages);
       setChatHistory(prev => [...prev, { role: 'assistant', content: aiResponse }]);
     } catch (error) {
-      console.error('API 调用失败:', error);
+      console.error('发送消息失败:', error);
       setChatHistory(prev => [...prev, {
         role: 'assistant',
-        content: '抱歉，服务暂时不可用，请稍后再试。'
+        content: '抱歉，服务暂时不可用。请稍后再试或查看页面上的项目信息。'
       }]);
     } finally {
       setIsTyping(false);

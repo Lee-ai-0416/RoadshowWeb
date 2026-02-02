@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "/api/:path*" }
+  ],
+  "env": {
+    "VITE_ALIYUN_API_KEY": "@aliyun-api-key"
+  }
+}
