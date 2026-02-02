@@ -4,7 +4,8 @@
       "Bash(python3 -c:*)",
       "Bash(pip install:*)",
       "Bash(python -c:*)",
-      "Bash(npm run dev)"
+      "Bash(npm run dev)",
+      "Bash(vercel env add VITE_ALIYUN_API_KEY)"
     ]
   }
 }
